@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+
+	"github.com/google/uuid"
 )
 
 const jsonContentType = "application/json"
@@ -17,7 +19,7 @@ type PointsResponse struct {
 }
 
 type IDResponse struct {
-	ID int `json:"id"`
+	ID string `json:"id"`
 }
 
 func NewServer(store *DB) *Server {
@@ -52,9 +54,35 @@ func (s *Server) getReceiptPoints(w http.ResponseWriter, r *http.Request) {
 	err := json.NewEncoder(w).Encode(PointsResponse{points})
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		return
 	}
 }
-func (s *Server) processReceipt(w http.ResponseWriter, r *http.Request) {
 
+func (s *Server) processReceipt(w http.ResponseWriter, r *http.Request) {
+	var receipt Receipt
+
+	err := json.NewDecoder(r.Body).Decode(&receipt)
+	if err != nil {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		return
+	}
+
+	currentRules := []RuleFn{
+		onePointForEveryAlphanumericCharInRetailerName(),
+		fiftyPointsIfTotalIsRoundDollarAmount(),
+		twentyFivePointsIfTotalIsMultipleOfAQuarter(),
+		fivePointsForEveryTwoItemsOnReceipt(),
+		trimmedLenOfItemDescription(),
+		sixPointsIfDayInPurchaseDateIsOdd(),
+		tenPointsIfTimeOfPurchaseIsBetween2and4PM(),
+	}
+
+	id := uuid.New().String()
+	points := receipt.points(currentRules...)
+
+	s.store.SetReceiptPointsById(id, points)
+
+	err = json.NewEncoder(w).Encode(IDResponse{id})
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 }
