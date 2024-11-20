@@ -1,5 +1,12 @@
 package main
 
+import (
+	"fmt"
+	"time"
+)
+
+const DateTimeNoSecondsLayout = "2006-01-02 15:04"
+
 type Receipt struct {
 	Retailer     string `json:"retailer"`
 	PurchaseDate string `json:"purchaseDate"`
@@ -15,12 +22,21 @@ type Item struct {
 
 type RuleFn func(r *Receipt) int
 
-func (receipt *Receipt) points(rules ...RuleFn) int {
+func (r *Receipt) points(rules ...RuleFn) int {
 	totalReceiptPts := 0
 
 	for _, rule := range rules {
-		totalReceiptPts += rule(receipt)
+		totalReceiptPts += rule(r)
 	}
 
 	return totalReceiptPts
+}
+
+func (r *Receipt) dateTime() (time.Time, error) {
+	dateTime, err := time.Parse(DateTimeNoSecondsLayout, fmt.Sprintf("%v %v", r.PurchaseDate, r.PurchaseTime))
+	if err != nil {
+		return time.Time{}, err
+	}
+
+	return dateTime, nil
 }

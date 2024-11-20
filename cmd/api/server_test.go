@@ -2,14 +2,13 @@ package main
 
 import (
 	"bytes"
-	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 )
 
-// Expect 28 points from this receipt
-var receipt1 = `{
+// Tot 28 points
+const receipt1 = `{
   "retailer": "Target",
   "purchaseDate": "2022-01-01",
   "purchaseTime": "13:01",
@@ -41,12 +40,12 @@ func TestProcessReceipt(t *testing.T) {
 	var receipt1Id string
 
 	t.Run("server responds with ok and json body with id given a valid receipt", func(t *testing.T) {
-		receiptJson, err := json.Marshal(receipt1)
-		if err != nil {
-			t.Fatal(err)
-		}
+		// receiptJson, err := json.Marshal(receipt1)
+		// if err != nil {
+		// 	t.Fatal(err)
+		// }
 
-		requestBody := bytes.NewReader(receiptJson)
+		requestBody := bytes.NewReader([]byte(receipt1))
 		request := httptest.NewRequest(http.MethodPost, "/receipts/process", requestBody)
 		response := httptest.NewRecorder()
 

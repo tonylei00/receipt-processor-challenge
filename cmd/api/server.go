@@ -1,10 +1,7 @@
 package main
 
 import (
-	"encoding/json"
 	"net/http"
-
-	"github.com/google/uuid"
 )
 
 const jsonContentType = "application/json"
@@ -38,51 +35,4 @@ func (s *Server) routes() *http.ServeMux {
 	router.Handle("POST /receipts/process", http.HandlerFunc(s.processReceipt))
 
 	return router
-}
-
-func (s *Server) getReceiptPoints(w http.ResponseWriter, r *http.Request) {
-	id := r.PathValue("id")
-
-	points, ok := s.store.GetReceiptPointsById(id)
-	if !ok {
-		w.WriteHeader(http.StatusNotFound)
-		return
-	}
-
-	w.Header().Set("Content-Type", jsonContentType)
-
-	err := json.NewEncoder(w).Encode(PointsResponse{points})
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-	}
-}
-
-func (s *Server) processReceipt(w http.ResponseWriter, r *http.Request) {
-	var receipt Receipt
-
-	err := json.NewDecoder(r.Body).Decode(&receipt)
-	if err != nil {
-		w.WriteHeader(http.StatusUnprocessableEntity)
-		return
-	}
-
-	currentRules := []RuleFn{
-		onePointForEveryAlphanumericCharInRetailerName(),
-		fiftyPointsIfTotalIsRoundDollarAmount(),
-		twentyFivePointsIfTotalIsMultipleOfAQuarter(),
-		fivePointsForEveryTwoItemsOnReceipt(),
-		trimmedLenOfItemDescription(),
-		sixPointsIfDayInPurchaseDateIsOdd(),
-		tenPointsIfTimeOfPurchaseIsBetween2and4PM(),
-	}
-
-	id := uuid.New().String()
-	points := receipt.points(currentRules...)
-
-	s.store.SetReceiptPointsById(id, points)
-
-	err = json.NewEncoder(w).Encode(IDResponse{id})
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-	}
 }
