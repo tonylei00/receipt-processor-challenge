@@ -20,19 +20,24 @@ type IDResponse struct {
 }
 
 func NewServer(store *DB) *Server {
-	server := new(Server)
+	s := new(Server)
+	s.store = store
 
-	server.store = store
-	server.Handler = server.routes()
-
-	return server
-}
-
-func (s *Server) routes() *http.ServeMux {
 	router := http.NewServeMux()
 
 	router.Handle("GET /receipts/{id}/points", http.HandlerFunc(s.getReceiptPoints))
 	router.Handle("POST /receipts/process", http.HandlerFunc(s.processReceipt))
 
-	return router
+	s.Handler = router
+
+	return s
 }
+
+// func (s *Server) routes() *http.ServeMux {
+// 	router := http.NewServeMux()
+
+// 	router.Handle("GET /receipts/{id}/points", http.HandlerFunc(s.getReceiptPoints))
+// 	router.Handle("POST /receipts/process", http.HandlerFunc(s.processReceipt))
+
+// 	return router
+// }

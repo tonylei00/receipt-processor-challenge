@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -40,11 +41,6 @@ func TestProcessReceipt(t *testing.T) {
 	var receipt1Id string
 
 	t.Run("server responds with ok and json body with id given a valid receipt", func(t *testing.T) {
-		// receiptJson, err := json.Marshal(receipt1)
-		// if err != nil {
-		// 	t.Fatal(err)
-		// }
-
 		requestBody := bytes.NewReader([]byte(receipt1))
 		request := httptest.NewRequest(http.MethodPost, "/receipts/process", requestBody)
 		response := httptest.NewRecorder()
@@ -65,5 +61,32 @@ func TestProcessReceipt(t *testing.T) {
 		want := 28
 
 		assertInteger(t, got, want)
+	})
+}
+
+func TestGetPointsById(t *testing.T) {
+	testDB := NewDB()
+	testServer := NewServer(testDB)
+	testId := "id-101"
+	testServer.store.SetReceiptPointsById(testId, 500)
+
+	t.Run("server responds ok with json res body of 500 points when given valid id", func(t *testing.T) {
+		request := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/receipts/%s/points", testId), nil)
+		response := httptest.NewRecorder()
+
+		testServer.ServeHTTP(response, request)
+
+		assertStatusCode(t, response.Code, http.StatusOK)
+		assertContentType(t, response.Header(), jsonContentType)
+		gotPoints := assertPointsResponse(t, response.Body)
+		assertInteger(t, gotPoints, 500)
+	})
+	t.Run("server responds with not found when given invalid id", func(t *testing.T) {
+		request := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/receipts/%s/points", "invalid-id"), nil)
+		response := httptest.NewRecorder()
+
+		testServer.ServeHTTP(response, request)
+
+		assertStatusCode(t, response.Code, http.StatusNotFound)
 	})
 }

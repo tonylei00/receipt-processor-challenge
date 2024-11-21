@@ -6,6 +6,8 @@ import (
 	"strings"
 )
 
+type RuleFn func(r *Receipt) int
+
 // One point for every alphanumeric character in the retailer name.
 func onePointForEveryAlphanumericCharInRetailerName(r *Receipt) int {
 	isAlphaNumeric := func(c rune) bool {

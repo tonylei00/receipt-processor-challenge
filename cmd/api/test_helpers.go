@@ -30,16 +30,28 @@ func assertIDResponse(t testing.TB, got io.Reader) string {
 	var response IDResponse
 	err := json.NewDecoder(got).Decode(&response)
 	if err != nil {
-		t.Fatal(err)
+		t.Error(err)
 	}
 
 	return response.ID
+}
+
+func assertPointsResponse(t testing.TB, got io.Reader) int {
+	t.Helper()
+
+	var pointsResponse PointsResponse
+	err := json.NewDecoder(got).Decode(&pointsResponse)
+	if err != nil {
+		t.Error(err)
+	}
+
+	return pointsResponse.Points
 }
 
 func assertInteger(t testing.TB, got, want int) {
 	t.Helper()
 
 	if got != want {
-		t.Fatalf("got=%d, want=%d", got, want)
+		t.Errorf("got=%d, want=%d", got, want)
 	}
 }

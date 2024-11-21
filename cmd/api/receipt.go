@@ -20,8 +20,6 @@ type Item struct {
 	Price            string `json:"price"`
 }
 
-type RuleFn func(r *Receipt) int
-
 func (r *Receipt) points(rules ...RuleFn) int {
 	totalReceiptPts := 0
 

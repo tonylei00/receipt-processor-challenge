@@ -1,7 +1,9 @@
 package main
 
 func NewDB() *DB {
-	return &DB{map[string]int{}}
+	return &DB{
+		store: make(map[string]int),
+	}
 }
 
 type DB struct {
