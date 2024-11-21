@@ -32,12 +32,3 @@ func NewServer(store *DB) *Server {
 
 	return s
 }
-
-// func (s *Server) routes() *http.ServeMux {
-// 	router := http.NewServeMux()
-
-// 	router.Handle("GET /receipts/{id}/points", http.HandlerFunc(s.getReceiptPoints))
-// 	router.Handle("POST /receipts/process", http.HandlerFunc(s.processReceipt))
-
-// 	return router
-// }
